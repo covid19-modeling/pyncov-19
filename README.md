@@ -1,7 +1,43 @@
-# Pyncov-19: Simulating the spread of SARS-CoV-2
+# Pyncov-19: Learn and predict the spread of COVID-19
 
 Pyncov-19 is a tiny probabilistic simulator for SARS-CoV-2 implemented in Python 3, whose only dependency is Numpy 1.18.
 This simulator is used to learn and predict the temporal dynamics of COVID-19 that are shown in https://covid19-modeling.github.io. It implements a probabilistic compartmental model at the individual level using a Markov Chain model with temporal transitions that were adjusted using the most recent scientific evidence.
+
+## Quick Start
+
+Installation using pip:
+
+```bash
+pip install pyncov
+```
+
+Sampling 1000 simulated trajectories of the SARS-CoV-2 spread in Madrid:
+
+```python
+import pyncov as nc
+
+susceptible = 6680000
+infected = 1
+num_days = 100
+
+# Those parameters were fitted using Pyncov-19 with CMAES
+rit_params = [1.76206245, 0.73465654, 11.46818215, 0.01691976]
+# Use the default Ri(t) function with the provided parameters to calculate the daily individual dynamic reproduction rate
+daily_ri_values = [sim.default_rit_function(i, rit_params) for i in range(num_days)]
+
+# Instantiate the model with the default parameters and sample 1,000 chains
+# NOTE: show_progress requires the TQDM library not installed by default.
+m = nc.build_markovchain(sim.MARKOV_DEFAULT_PARAMS)
+simulations = nc.sample_chains(susceptible, infected, m, daily_ri_values, 
+                               num_chains=1000, n_workers=4, show_progress=True)
+
+```
+
+A more detailed explanation can be found in the notebook included in the repository https://github.com/covid19-modeling/pyncov-19/blob/master/notebooks/basics.ipynb
+
+
+
+## About
 
 This library is still a proof-of-concept and it's inteded only to be used for research and experimentation. For more information please read our [preprint](https://arxiv.org/abs/2004.13695):
 
