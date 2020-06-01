@@ -23,11 +23,11 @@ num_days = 100
 # Those parameters were fitted using Pyncov-19 with CMAES
 rit_params = [1.76206245, 0.73465654, 11.46818215, 0.01691976]
 # Use the default Ri(t) function with the provided parameters to calculate the daily individual dynamic reproduction rate
-daily_ri_values = [sim.default_rit_function(i, rit_params) for i in range(num_days)]
+daily_ri_values = [nc.default_rit_function(i, rit_params) for i in range(num_days)]
 
 # Instantiate the model with the default parameters and sample 1,000 chains
 # NOTE: show_progress requires the TQDM library not installed by default.
-m = nc.build_markovchain(sim.MARKOV_DEFAULT_PARAMS)
+m = nc.build_markovchain(nc.MARKOV_DEFAULT_PARAMS)
 simulations = nc.sample_chains(susceptible, infected, m, daily_ri_values, 
                                num_chains=1000, n_workers=4, show_progress=True)
 
