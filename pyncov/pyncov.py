@@ -89,6 +89,10 @@ def default_rit_function(day, params):
     return d + a / (1 + b ** (-(day - c)))
 
 
+def infection_rates(params, num_days=60):
+    return [default_rit_function(i, params) for i in range(num_days)]
+
+
 # Markov chain model with temporal movements
 def build_markovchain(params):
     num_states = len(STATE_NAMES)
