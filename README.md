@@ -32,8 +32,7 @@ susceptible = 6680000
 infected = 1
 num_days = 80
 
-parameters = nc.io.get_trained_params('ESP-MD')
-# Use the default Ri(t) function with the provided parameters to calculate the daily individual dynamic reproduction rate
+infection_rates = nc.infection_rates(nc.io.get_trained_params('ESP-MD'), num_days=60)
 values = [nc.default_rit_function(i, parameters) for i in range(num_days)]
 
 # Instantiate the model with the default parameters and sample 100 chains
