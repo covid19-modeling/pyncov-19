@@ -4,6 +4,8 @@
 Pyncov-19 is a tiny probabilistic simulator for SARS-CoV-2 implemented in Python 3, whose only dependency is Numpy 1.18.
 This simulator is used to learn and predict the temporal dynamics of COVID-19 that are shown in https://covid19-modeling.github.io. It implements a probabilistic compartmental model at the individual level using a Markov Chain model with temporal transitions that were adjusted using the most recent scientific evidence.
 
+![](https://github.com/covid19-modeling/pyncov-19/raw/master/notebooks/assets/madrid_example.png)
+
 ## Quick Start
 
 Basic installation using pip with minimal dependencies:
