@@ -6,33 +6,58 @@ This simulator is used to learn and predict the temporal dynamics of COVID-19 th
 
 ## Quick Start
 
-Installation using pip:
+Basic installation using pip with minimal dependencies:
 
 ```bash
 pip install pyncov
 ```
 
-Sampling 1000 simulated trajectories of the SARS-CoV-2 spread in Madrid:
+In order to install pyncov with the additional features (progress bar, plotting) use:
+
+```bash
+pip install pyncov[all]
+```
+
+Sampling 100 simulated trajectories of the SARS-CoV-2 spread in Madrid:
 
 ```python
 import pyncov as nc
+import pyncov.io
+# Requires pandas
+import pyncov.plot
 
 susceptible = 6680000
 infected = 1
-num_days = 100
+num_days = 80
 
-# Those parameters were fitted using Pyncov-19 with CMAES
-rit_params = [1.76206245, 0.73465654, 11.46818215, 0.01691976]
+parameters = nc.io.get_trained_params('ESP-MD')
 # Use the default Ri(t) function with the provided parameters to calculate the daily individual dynamic reproduction rate
-daily_ri_values = [nc.default_rit_function(i, rit_params) for i in range(num_days)]
+values = [nc.default_rit_function(i, parameters) for i in range(num_days)]
 
-# Instantiate the model with the default parameters and sample 1,000 chains
+# Instantiate the model with the default parameters and sample 100 chains
 # NOTE: show_progress requires the TQDM library not installed by default.
 m = nc.build_markovchain(nc.MARKOV_DEFAULT_PARAMS)
-simulations = nc.sample_chains(susceptible, infected, m, daily_ri_values, 
-                               num_chains=1000, n_workers=4, show_progress=True)
+simulations = nc.sample_chains(susceptible, infected, m, values, 
+                               num_chains=100, show_progress=True)
 
 ```
+
+You can visualizate the trajectories and the average trajectory matching the observed values in Madrid using `pyncov.plot`:
+
+```python
+import matplotlib.pyplot as plt
+
+# Load the dataset with pandas
+df = pd.read_csv(...)
+
+fig, ax = plt.subplots(1, 3, figsize=(16, 4))
+nc.plot.plot_state(simulations, nc.S.I1, ax=ax[0], index=df.index, title="New infections over time")
+nc.plot.plot_state(simulations, nc.S.M0, diff=True, ax=ax[1], index=df.index, title="Daily fatalities")
+nc.plot.plot_state(simulations, nc.S.M0, ax=ax[2], index=df.index, title="Total fatalities")
+df.diff().plot(ax=ax[1]);
+df.plot(ax=ax[2]);
+```
+![](noteboks/assets/madrid_example.png)
 
 A more detailed explanation can be found in the notebook included in the repository https://github.com/covid19-modeling/pyncov-19/blob/master/notebooks/basics.ipynb
 
