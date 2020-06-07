@@ -57,7 +57,7 @@ nc.plot.plot_state(simulations, nc.S.M0, ax=ax[2], index=df.index, title="Total 
 df.diff().plot(ax=ax[1]);
 df.plot(ax=ax[2]);
 ```
-![](noteboks/assets/madrid_example.png)
+![](https://github.com/covid19-modeling/pyncov-19/raw/master/notebooks/assets/madrid_example.png)
 
 A more detailed explanation can be found in the notebook included in the repository https://github.com/covid19-modeling/pyncov-19/blob/master/notebooks/basics.ipynb
 
