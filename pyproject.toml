@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyncov"
-version = "0.1.5"
+version = "0.1.6"
 license = "MIT"
 description = "Pyncov-19 is a tiny probabilistic simulator for SARS-CoV-2"
 authors = ["Pablo R. Mier <pablo.rodriguez-mier@inrae.fr>"]
