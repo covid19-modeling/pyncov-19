@@ -32,14 +32,11 @@ susceptible = 6680000
 infected = 1
 num_days = 80
 
-parameters = nc.io.get_trained_params('ESP-MD')
-# Use the default Ri(t) function with the provided parameters to calculate the daily individual dynamic reproduction rate
-values = [nc.default_rit_function(i, parameters) for i in range(num_days)]
-
+infection_rates = nc.infection_rates(nc.io.get_trained_params('ESP-MD'), num_days=60)
 # Instantiate the model with the default parameters and sample 100 chains
 # NOTE: show_progress requires the TQDM library not installed by default.
 m = nc.build_markovchain(nc.MARKOV_DEFAULT_PARAMS)
-simulations = nc.sample_chains(susceptible, infected, m, values, 
+simulations = nc.sample_chains(susceptible, infected, m, infection_rates, 
                                num_chains=100, show_progress=True)
 
 ```
