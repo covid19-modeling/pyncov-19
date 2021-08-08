@@ -23,7 +23,7 @@ from enum import IntEnum, unique
 
 
 RNG = np.random.Generator(np.random.PCG64(np.random.SeedSequence()))
-Model = namedtuple('Model', ['transitionMatrix', 'timeSimulator', 'parameters', 'alphas', 'betas', 'means'])
+Model = namedtuple('Model', ['transitionMatrix', 'timeSimulator', 'parameters', 'alphas', 'betas', 'proportions'])
 Schedule = namedtuple('Schedule', ['incoming', 'outgoing'])
 
 # TODO: Future versions will incorporate a way to define custom Markov Chains
@@ -137,21 +137,21 @@ def build_markovchain(params, alphas=None, betas=None):
     distributions[S.R1, S.R2] = lambda amount, rng=RNG: rng.integers(
         low=pUniform_R1_R2[0], high=pUniform_R1_R2[1], size=amount, endpoint=True)
 
-    # Quick patch: compute the mean of the distribution by sampling.
-    # Assume that the user can provide any type of function in the future.
-    samples = 10000
-    means = np.zeros(shape=(num_states, num_states), dtype=int)
-    means[S.I1, S.I2] = np.mean(distributions[S.I1, S.I2](samples)).astype(int)
-    means[S.I1, S.I3] = np.mean(distributions[S.I1, S.I3](samples)).astype(int)
-    means[S.I3, S.M0] = np.mean(distributions[S.I3, S.M0](samples)).astype(int)
-    means[S.I3, S.R1] = np.mean(distributions[S.I3, S.R1](samples)).astype(int)
-    means[S.I2, S.R1] = np.mean(distributions[S.I2, S.R1](samples)).astype(int)
-    means[S.R1, S.R2] = np.mean(distributions[S.R1, S.R2](samples)).astype(int)
+    # Quick patch for deterministic mode, assuming distributions could be any function
+    # provided by the user. Change this in the future.
+    n = 100000
+    proportions = np.full(shape=(num_states, num_states), fill_value=None)
+    proportions[S.I1, S.I2] = np.bincount(distributions[S.I1, S.I2](n).astype(int))/n
+    proportions[S.I1, S.I3] = np.bincount(distributions[S.I1, S.I3](n).astype(int))/n
+    proportions[S.I3, S.M0] = np.bincount(distributions[S.I3, S.M0](n).astype(int))/n
+    proportions[S.I3, S.R1] = np.bincount(distributions[S.I3, S.R1](n).astype(int))/n
+    proportions[S.I2, S.R1] = np.bincount(distributions[S.I2, S.R1](n).astype(int))/n
+    proportions[S.R1, S.R2] = np.bincount(distributions[S.R1, S.R2](n).astype(int))/n
 
-    return Model(create_transition_matrix(alpha, beta), distributions, params, alphas, betas, means)
+    return Model(create_transition_matrix(alpha, beta), distributions, params, alphas, betas, proportions)
 
 
-def simulate_day(day, schedule, model, rng, expectation_mode=False):
+def simulate_day(day, schedule, model, rng, deterministic=False):
     max_days = np.size(schedule.incoming, 0)
     remaining_days = max_days - day
     # If a list of alphas/betas is provided, reconstruct the transition matrix
@@ -177,46 +177,47 @@ def simulate_day(day, schedule, model, rng, expectation_mode=False):
         probs = transitionMatrix[i, destinations].tolist()
         # Optimize this step by multiplying by the probabilities. Add an option to switch to the expectation mode
         average_assignation, assignations = None, None
-        if expectation_mode:
+        if deterministic:
             average_assignation = [np.round(probs[i] * incoming).astype(int) for i in range(len(destinations))]
         else:
             assignations = rng.choice(destinations, size=incoming, p=probs, replace=True)
         for j in range(len(destinations)):
+            counts = np.zeros(remaining_days)
             dest = destinations[j]
             # Amount of people designated to state j
-            if expectation_mode:
+            if deterministic:
                 amount = average_assignation[j]
             else:
                 amount = np.sum(assignations == dest)
             if amount == 0:
                 continue
-            # Get the time simulator from current to destination
-            time_dist = model.timeSimulator[i, dest]
-            # TODO: If expectation_mode = True, use the mean of the distribution               
-            sampled_times = time_dist(amount, rng).astype(int)
-            # Update the schedule table to indicate which days they are entering
-            counts = np.zeros(remaining_days)
-            # If there is only one person, no need to count. We just fill the corresponding day
-            if expectation_mode:
-                entering_day = model.means[i, dest]
-                if entering_day < remaining_days:
-                    counts[entering_day] = amount
-            elif np.size(sampled_times) <= 1:
-                entering_day = sampled_times[0]
-                if entering_day < remaining_days:
-                    counts[entering_day] = 1
-            else:
-                c = np.bincount(sampled_times.astype(int))
-                # Fill the corresponding days, discarding days ahead
-                # the remaining time in the simulation
+            if deterministic:
+                c = np.round(model.proportions[i, dest] * amount).astype(int)
                 s = min(remaining_days, np.size(c))
                 counts[:s] = c[:s]
+            else:
+                # Get the time simulator from current to destination
+                time_dist = model.timeSimulator[i, dest]
+                # TODO: If deterministic, make assignation based on average distribution per days             
+                sampled_times = time_dist(amount, rng).astype(int)
+                # Update the schedule table to indicate which days they are entering
+                # If there is only one person, no need to count. We just fill the corresponding day
+                if np.size(sampled_times) <= 1:
+                    entering_day = sampled_times[0]
+                    if entering_day < remaining_days:
+                        counts[entering_day] = 1
+                else:
+                    c = np.bincount(sampled_times.astype(int))
+                    # Fill the corresponding days, discarding days ahead
+                    # the remaining time in the simulation
+                    s = min(remaining_days, np.size(c))
+                    counts[:s] = c[:s]
             schedule.outgoing[day:, i] = schedule.outgoing[day:, i] - counts
             schedule.incoming[day:, dest] = schedule.incoming[day:, dest] + counts
     return schedule
 
 
-def simulation(susceptible_population, initial_infections, model, daily_ri_values, expectation_mode=False, rng=RNG):
+def simulation(susceptible_population, initial_infections, model, daily_ri_values, deterministic=False, rng=RNG):
     num_states = len(STATE_NAMES)
     num_days = len(daily_ri_values)
     total_population = susceptible_population + initial_infections
@@ -230,7 +231,7 @@ def simulation(susceptible_population, initial_infections, model, daily_ri_value
         else:
             infectious_amount = infectious(state_counts[i, :])
             lambda_t = daily_ri_values[i] * infectious_amount
-            if expectation_mode:
+            if deterministic:
                 total = np.round(lambda_t).astype(int)
             else:
                 total = rng.poisson(lam=lambda_t, size=1)
@@ -238,7 +239,7 @@ def simulation(susceptible_population, initial_infections, model, daily_ri_value
             susceptible_population = susceptible_population - new_infections
 
         schedule.incoming[i, S.I1] = new_infections
-        schedule = simulate_day(i, schedule, model, expectation_mode=expectation_mode, rng=rng)
+        schedule = simulate_day(i, schedule, model, deterministic=deterministic, rng=rng)
         state_counts[i + 1, :] = state_counts[i, :] + schedule.incoming[i, :] + schedule.outgoing[i, :]
         total = susceptible_population + np.sum(state_counts[i + 1, :])
         if total != total_population:
@@ -247,7 +248,7 @@ def simulation(susceptible_population, initial_infections, model, daily_ri_value
 
 
 def sample_chains(susceptible, initial_infected, model, daily_ri_values, num_chains=1000,
-                  n_workers=None, pool=None, expectation_mode=False, show_progress=False):
+                  n_workers=None, pool=None, deterministic=False, show_progress=False):
 
     if n_workers is not None and n_workers > 1 and pool is None:
         pool = initialize_pool(n_workers, np.random.SeedSequence())
@@ -262,9 +263,9 @@ def sample_chains(susceptible, initial_infected, model, daily_ri_values, num_cha
 
     simulations = np.zeros(shape=(num_chains, len(daily_ri_values), len(STATE_NAMES)))
     if pool is None:
-        it = (simulation(susceptible, initial_infected, model, daily_ri_values, expectation_mode=expectation_mode) for _ in range(num_chains))
+        it = (simulation(susceptible, initial_infected, model, daily_ri_values, deterministic=deterministic) for _ in range(num_chains))
     else:
-        it = pool.imap_unordered(_fn_simulation, [(susceptible, initial_infected, model.parameters, daily_ri_values, model.alphas, model.betas, expectation_mode)
+        it = pool.imap_unordered(_fn_simulation, [(susceptible, initial_infected, model.parameters, daily_ri_values, model.alphas, model.betas, deterministic)
                                                   for _ in range(num_chains)])
 
     for i, (st, _) in enumerate(it):
@@ -285,7 +286,7 @@ def _fn_simulation(args):
     # with the lambdas
     s, i, p, v, a, b, e = args
     m = build_markovchain(p, alphas=a, betas=b)
-    states, schedule = simulation(s, i, m, v, expectation_mode=e, rng=_fn_simulation.random_generator)
+    states, schedule = simulation(s, i, m, v, deterministic=e, rng=_fn_simulation.random_generator)
     return states, schedule
 
 
