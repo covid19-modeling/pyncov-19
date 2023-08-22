@@ -64,11 +64,8 @@ A more detailed explanation can be found in the notebook included in the reposit
 
 ## About
 
-This library is still a proof-of-concept and it's inteded only to be used for research and experimentation. For more information please read our [preprint](https://arxiv.org/abs/2004.13695):
+This library is still a proof-of-concept and it's inteded only to be used for research and experimentation. For more information please read our [paper](https://doi.org/10.1016/j.cmpb.2021.106399):
 
-> Matabuena, M., Meijide-García, C., Rodríguez-Mier, P., & Leborán, V. (2020). 
-**COVID-19: Estimating spread in Spain solving an inverse problem with a probabilistic model.**
-arXiv preprint arXiv:2004.13695.
-
+> Matabuena, M., Rodriguez-Mier, P., Garcia-Meixide, C., & Leboran, V. (2021). COVID-19: Estimation of the transmission dynamics in Spain using a stochastic simulator and black-box optimization techniques. *Computer Methods and Programs in Biomedicine*, 211, 106399.
 
 This model's main goal is to estimate the levels of infections (or the seroprevalence) of the population, using only data from the registered deaths caused by COVID-19. Although the model can be used to make future predictions (evolution of infections, fatalities, etc.), that's not the primary purpose of the model. Given the uncertainty about essential events that alter the course and dynamics of the spread (for example, the use of masks, lockdowns, social distance, etc.), it is tough to make accurate predictions, so we limit ourselves to use the model to reveal more information about what happened before (backcasting).
