@@ -64,7 +64,7 @@ A more detailed explanation can be found in the notebook included in the reposit
 
 ## About
 
-This library is still a proof-of-concept and it's inteded only to be used for research and experimentation. For more information please read our [paper](https://doi.org/10.1016/j.cmpb.2021.106399):
+For more information please read our [paper](https://doi.org/10.1016/j.cmpb.2021.106399):
 
 > Matabuena, M., Rodriguez-Mier, P., Garcia-Meixide, C., & Leboran, V. (2021). COVID-19: Estimation of the transmission dynamics in Spain using a stochastic simulator and black-box optimization techniques. *Computer Methods and Programs in Biomedicine*, 211, 106399.
 
