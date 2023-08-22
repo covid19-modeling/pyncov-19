@@ -63,9 +63,9 @@ A more detailed explanation can be found in the notebook included in the reposit
 
 
 ## About
+The primary objective of this model is to estimate the infection levels (or seroprevalence) of the population based solely on the data from registered deaths attributed to COVID-19. While the model has the capability to project future outcomes (such as infection trends and fatality rates), that isn't its central focus. Given the unpredictability surrounding pivotal events that can shift the trajectory and dynamics of the virus spread—like mask mandates, lockdowns, and social distancing—it's challenging to make precise predictions. Consequently, we primarily use the model for backcasting to shed light on past events.
 
 For more information please read our [paper](https://doi.org/10.1016/j.cmpb.2021.106399):
 
 > Matabuena, M., Rodriguez-Mier, P., Garcia-Meixide, C., & Leboran, V. (2021). COVID-19: Estimation of the transmission dynamics in Spain using a stochastic simulator and black-box optimization techniques. *Computer Methods and Programs in Biomedicine*, 211, 106399.
 
-This model's main goal is to estimate the levels of infections (or the seroprevalence) of the population, using only data from the registered deaths caused by COVID-19. Although the model can be used to make future predictions (evolution of infections, fatalities, etc.), that's not the primary purpose of the model. Given the uncertainty about essential events that alter the course and dynamics of the spread (for example, the use of masks, lockdowns, social distance, etc.), it is tough to make accurate predictions, so we limit ourselves to use the model to reveal more information about what happened before (backcasting).
