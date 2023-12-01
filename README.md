@@ -1,4 +1,10 @@
-# Pyncov-19: Learn and predict the spread of COVID-19
+<p align="center">
+ <img alt="logo" src="https://avatars.githubusercontent.com/u/64030820?s=200&v=4" height="200">
+<h1 align="center" margin=0px>
+Pyncov-19: Learn and predict the spread of COVID-19
+</h1>
+</p>
+
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1LzTsXcisv_v_w4q6o9GxvuAzToExFGaG?usp=sharing)
 
 Pyncov-19 is a tiny probabilistic simulator for SARS-CoV-2 implemented in Python 3, whose only dependency is Numpy 1.18.
